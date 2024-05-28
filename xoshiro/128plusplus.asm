@@ -12,7 +12,7 @@ Xoshiro128PlusPlus:
 	.repeat .sizeof(Xoshiro128State0), i
 		lda Xoshiro128State0+i
 		adc Xoshiro128State3+i
-		sta Xoshiro128Value+((i+1) % .sizeof(Xoshiro128State0))
+		sta Xoshiro128Value+((i+1) .mod .sizeof(Xoshiro128State0))
 	.endrepeat
 
 	; rotate right by 1 bit
