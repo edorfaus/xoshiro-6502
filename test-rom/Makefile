@@ -27,7 +27,7 @@ $(addprefix build/tests.,nes dbg map)&: build/main.o $(LDCFG)
 		$(filter-out $(LDCFG),$^)
 	mv $(basename $@).nes.tmp $(basename $@).nes
 
-build/main.o: core.asm graphics.asm nes2header.inc
+build/main.o: nes2header.inc core.asm graphics.asm testdata.asm
 build/main.o: ../xoshiro/*
 #build/main.o: ../xoroshiro/*
 
