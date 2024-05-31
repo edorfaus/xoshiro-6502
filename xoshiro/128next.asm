@@ -13,7 +13,7 @@ Xoshiro128Next:
 	lda Xoshiro128State1+0
 	asl
 	sta Xoshiro128Value+1
-	.repeat .sizeof(Xoshiro128State1)-1, i
+	.repeat .sizeof(Xoshiro128State1)-1-1, i
 		lda Xoshiro128State1+1+i
 		rol
 		sta Xoshiro128Value+2+i
