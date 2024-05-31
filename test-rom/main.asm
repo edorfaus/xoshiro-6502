@@ -6,6 +6,8 @@
 .include "../xoshiro/128plusplus.asm"
 .include "../xoshiro/128starstar.asm"
 .include "../xoshiro/128next.asm"
+.include "../xoshiro/128jump.asm"
+.include "../xoshiro/128longjump.asm"
 
 .segment "ZEROPAGE"
 verifyValues: .res 2
@@ -16,6 +18,7 @@ testLoopCounter: .res 1
 .segment "CODE"
 
 Main:
+	jsr InitTest_Xoshiro128
 	jsr InitState_Xoshiro128
 
 	lda #4
@@ -25,23 +28,53 @@ Main:
 		jsr verifyValueXoshiro128
 		jsr verifySameStateXoshiro128
 
+		jsr WriteBlank
+
 		jsr Xoshiro128PlusPlus
 		jsr verifyValueXoshiro128
 		jsr verifySameStateXoshiro128
+
+		jsr WriteBlank
 
 		jsr Xoshiro128StarStar
 		jsr verifyValueXoshiro128
 		jsr verifySameStateXoshiro128
 
+		jsr WriteBlank
+
 		jsr Xoshiro128Next
 		jsr verifyNextStateXoshiro128
 
-		lda #3
-		jsr WriteTile
+		jsr WriteSeparator
 
 	dec testLoopCounter
 	bne :-
 
+	; Note: we are here assuming that the jump and long-jump test states
+	; are stored directly after the test states used above.
+	; If this stops being true, add code to reinitialize verifyStates.
+
+	jsr InitState_Xoshiro128
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoshiro128Jump
+		jsr verifyNextStateXoshiro128
+	dec testLoopCounter
+	bne :-
+
+	jsr WriteSeparator
+
+	jsr InitState_Xoshiro128
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoshiro128LongJump
+		jsr verifyNextStateXoshiro128
+	dec testLoopCounter
+	bne :-
+
+	jsr WriteSeparator
 	jsr WriteTile
 
 :	jmp :-
@@ -55,7 +88,10 @@ InitState_Xoshiro128:
 		sta Xoshiro128State0, y
 		dey
 	bpl :-
+	rts
 
+; Clobbers: A
+InitTest_Xoshiro128:
 	lda #.lobyte(VerifyValuesXoshiro128)
 	sta verifyValues+0
 	lda #.hibyte(VerifyValuesXoshiro128)

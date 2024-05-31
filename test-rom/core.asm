@@ -167,3 +167,11 @@ WriteTile:
 	sta nmiPpuData
 	dec nmiPpuWrite
 	rts
+
+WriteBlank:
+	lda #0
+	jmp WriteTile
+
+WriteSeparator:
+	lda #3
+	jmp WriteTile
