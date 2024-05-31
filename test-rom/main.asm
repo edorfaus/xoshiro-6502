@@ -3,6 +3,7 @@
 .include "testdata.asm"
 
 .include "../xoshiro/128plus.asm"
+.include "../xoshiro/128plusplus.asm"
 .include "../xoshiro/128next.asm"
 
 .segment "ZEROPAGE"
@@ -20,6 +21,10 @@ Main:
 	sta testLoopCounter
 	:
 		jsr Xoshiro128Plus
+		jsr verifyValueXoshiro128
+		jsr verifySameStateXoshiro128
+
+		jsr Xoshiro128PlusPlus
 		jsr verifyValueXoshiro128
 		jsr verifySameStateXoshiro128
 

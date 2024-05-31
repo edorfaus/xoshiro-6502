@@ -1,11 +1,11 @@
 .segment "DATA"
 
 VerifyValuesXoshiro128:
-	; plus
-	.dword $C6543AFC
-	.dword $D4843189
-	.dword $D7559586
-	.dword $9C3FC0E5
+	; plus, plusplus
+	.dword $C6543AFC, $C06AC86F
+	.dword $D4843189, $B459C753
+	.dword $D7559586, $AA04C486
+	.dword $9C3FC0E5, $B3FB785A
 
 VerifyStatesXoshiro128:
 	.dword $964D4A0C, $D40AB895, $AD7FDECB, $3006F0F0
