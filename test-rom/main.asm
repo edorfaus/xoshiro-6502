@@ -4,6 +4,7 @@
 
 .include "../xoshiro/128plus.asm"
 .include "../xoshiro/128plusplus.asm"
+.include "../xoshiro/128starstar.asm"
 .include "../xoshiro/128next.asm"
 
 .segment "ZEROPAGE"
@@ -25,6 +26,10 @@ Main:
 		jsr verifySameStateXoshiro128
 
 		jsr Xoshiro128PlusPlus
+		jsr verifyValueXoshiro128
+		jsr verifySameStateXoshiro128
+
+		jsr Xoshiro128StarStar
 		jsr verifyValueXoshiro128
 		jsr verifySameStateXoshiro128
 
