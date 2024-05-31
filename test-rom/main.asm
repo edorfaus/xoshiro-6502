@@ -9,19 +9,29 @@
 verifyValues: .res 2
 verifyStates: .res 2
 
+testLoopCounter: .res 1
+
 .segment "CODE"
 
 Main:
 	jsr InitState_Xoshiro128
 
-	jsr Xoshiro128Plus
-	jsr verifyValueXoshiro128
-	jsr verifySameStateXoshiro128
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoshiro128Plus
+		jsr verifyValueXoshiro128
+		jsr verifySameStateXoshiro128
 
-	jsr Xoshiro128Next
-	jsr verifyNextStateXoshiro128
+		jsr Xoshiro128Next
+		jsr verifyNextStateXoshiro128
 
-	lda #3
+		lda #3
+		jsr WriteTile
+
+	dec testLoopCounter
+	bne :-
+
 	jsr WriteTile
 
 :	jmp :-
