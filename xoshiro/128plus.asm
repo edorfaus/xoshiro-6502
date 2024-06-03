@@ -3,6 +3,7 @@
 .segment "LIBCODE"
 
 ; Output function for xoshiro128+ 1.0.
+; Clobbers: A
 Xoshiro128Plus:
 	; result = state[0] + state[3]
 	clc

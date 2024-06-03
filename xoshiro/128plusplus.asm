@@ -3,6 +3,7 @@
 .segment "LIBCODE"
 
 ; Output function for xoshiro128++ 1.0.
+; Clobbers: A
 Xoshiro128PlusPlus:
 	; result = RotateLeft(state[0] + state[3], 7) + state[0]
 	; 7 = 8 - 1, so one full byte minus one bit : left a byte, right 1.
