@@ -175,3 +175,17 @@ WriteBlank:
 WriteSeparator:
 	lda #3
 	jmp WriteTile
+
+WriteNewline:
+	:
+		lda nmiPpuWrite
+	bne :-
+	clc
+	lda nmiPpuAddr+0
+	adc #32
+	and #$FF-31
+	sta nmiPpuAddr+0
+	bcc :+
+		inc nmiPpuAddr+1
+	:
+	rts
