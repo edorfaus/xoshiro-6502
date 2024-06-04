@@ -2,19 +2,75 @@
 .include "graphics.asm"
 .include "testdata.asm"
 
-.include "../xoshiro/128plus.asm"
-.include "../xoshiro/128plusplus.asm"
-.include "../xoshiro/128starstar.asm"
-.include "../xoshiro/128next.asm"
-.include "../xoshiro/128jump.asm"
-.include "../xoshiro/128longjump.asm"
+;printSizes = 1
 
+.macro printSizeSep
+	.ifdef printSizes
+		.out ""
+	.endif
+.endmacro
+
+.ifndef printSizes
+.macro printSize lbl
+.endmacro
+.else
+
+size_Xoshiro128Plus     =  38
+size_Xoshiro128PlusPlus =  88
+size_Xoshiro128StarStar = 171
+size_Xoshiro128Next     = 122
+size_Xoshiro128Jump     =  62
+size_Xoshiro128LongJump =  62
+
+size_Xoshiro256Plus     =  74
+size_Xoshiro256PlusPlus = 175
+size_Xoshiro256StarStar = 331
+size_Xoshiro256Next     = 145
+size_Xoshiro256Jump     =  62
+size_Xoshiro256LongJump =  62
+
+.macro printSize lbl
+	.define sz_lbl .ident(.concat("size_", .string(lbl)))
+	.ifdef sz_lbl
+		.define diff .sprintf(" # %+3d", * - lbl - sz_lbl)
+	.else
+		.define diff ""
+	.endif
+	.out .sprintf("%23s = %3d%s", .string(sz_lbl), * - lbl, diff)
+	.undefine diff
+	.undefine sz_lbl
+.endmacro
+
+.endif
+
+printSizeSep
+.include "../xoshiro/128plus.asm"
+printSize Xoshiro128Plus
+.include "../xoshiro/128plusplus.asm"
+printSize Xoshiro128PlusPlus
+.include "../xoshiro/128starstar.asm"
+printSize Xoshiro128StarStar
+.include "../xoshiro/128next.asm"
+printSize Xoshiro128Next
+.include "../xoshiro/128jump.asm"
+printSize Xoshiro128Jump
+.include "../xoshiro/128longjump.asm"
+printSize Xoshiro128LongJump
+
+printSizeSep
 .include "../xoshiro/256plus.asm"
+printSize Xoshiro256Plus
 .include "../xoshiro/256plusplus.asm"
+printSize Xoshiro256PlusPlus
 .include "../xoshiro/256starstar.asm"
+printSize Xoshiro256StarStar
 .include "../xoshiro/256next.asm"
+printSize Xoshiro256Next
 .include "../xoshiro/256jump.asm"
+printSize Xoshiro256Jump
 .include "../xoshiro/256longjump.asm"
+printSize Xoshiro256LongJump
+printSizeSep
 
 .segment "ZEROPAGE"
 verifyValues: .res 2
