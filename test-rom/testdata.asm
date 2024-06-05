@@ -92,3 +92,19 @@ VerifyLongJumpStatesXoshiro256:
 
 	.dword $8DE16A23,$4BC74347, $2EC5F7E2,$F0196A71
 	.dword $172FED0E,$B6606E0A, $E78A0739,$BE940FD7
+
+; -- Xoroshiro64
+
+VerifyValuesXoroshiro64:
+	; star, starstar
+	.dword $A308C2C4, $E579BAE4
+	.dword $1B34214B, $0094CEEF
+	.dword $2CDF9955, $0BBFD539
+	.dword $3BA099FE, $44603EE3
+
+VerifyStatesXoroshiro64:
+	.dword $964D4A0C, $D40AB895
+	.dword $FFFBF5B1, $FE532848
+	.dword $97ECC02F, $1BBF2035
+	.dword $95CC671A, $7C03518A
+	.dword $1DF5270C, $E6D21D39

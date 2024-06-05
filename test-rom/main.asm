@@ -36,7 +36,7 @@ size_Xoshiro256LongJump =  62
 	.else
 		.define diff ""
 	.endif
-	.out .sprintf("%23s = %3d%s", .string(sz_lbl), * - lbl, diff)
+	.out .sprintf("%25s = %3d%s", .string(sz_lbl), * - lbl, diff)
 	.undefine diff
 	.undefine sz_lbl
 .endmacro
@@ -70,6 +70,14 @@ printSize Xoshiro256Next
 printSize Xoshiro256Jump
 .include "../xoshiro/256longjump.asm"
 printSize Xoshiro256LongJump
+
+printSizeSep
+.include "../xoroshiro/64star.asm"
+printSize Xoroshiro64Star
+.include "../xoroshiro/64starstar.asm"
+printSize Xoroshiro64StarStar
+.include "../xoroshiro/64next.asm"
+printSize Xoroshiro64Next
 printSizeSep
 
 .segment "ZEROPAGE"
@@ -84,9 +92,13 @@ Main:
 	jsr TestXoshiro128
 	jsr WriteNewline
 	jsr TestXoshiro256
+	jsr WriteNewline
+	jsr TestXoroshiro64
 
 TestsDone:
 	jmp TestsDone
+
+; --------
 
 TestXoshiro128:
 	jsr InitTest_Xoshiro128
@@ -352,6 +364,107 @@ verifySameStateXoshiro256:
 	@loop:
 		lda (verifyStates), y
 		cmp Xoshiro256State0, y
+		bne @failed
+	dey
+	bpl @loop
+	@failed:
+	jmp showVerifyResult
+
+; --------
+
+TestXoroshiro64:
+	jsr InitTest_Xoroshiro64
+	jsr InitState_Xoroshiro64
+
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoroshiro64Star
+		jsr verifyValueXoroshiro64
+		jsr verifySameStateXoroshiro64
+
+		jsr WriteBlank
+
+		jsr Xoroshiro64StarStar
+		jsr verifyValueXoroshiro64
+		jsr verifySameStateXoroshiro64
+
+		jsr WriteBlank
+
+		jsr Xoroshiro64Next
+		jsr verifyNextStateXoroshiro64
+
+		jsr WriteSeparator
+
+	dec testLoopCounter
+	bne :-
+
+	jsr WriteSeparator
+
+	rts
+
+; Clobbers: A, Y
+InitState_Xoroshiro64:
+	; This assumes that the state variables are consecutive in memory.
+	ldy #2*.sizeof(Xoroshiro64State0)-1
+	:
+		lda Seed, y
+		sta Xoroshiro64State0, y
+		dey
+	bpl :-
+	rts
+
+; Clobbers: A
+InitTest_Xoroshiro64:
+	lda #.lobyte(VerifyValuesXoroshiro64)
+	sta verifyValues+0
+	lda #.hibyte(VerifyValuesXoroshiro64)
+	sta verifyValues+1
+
+	lda #.lobyte(VerifyStatesXoroshiro64)
+	sta verifyStates+0
+	lda #.hibyte(VerifyStatesXoroshiro64)
+	sta verifyStates+1
+
+	rts
+
+; Clobbers: A, Y
+verifyValueXoroshiro64:
+	ldy #.sizeof(Xoroshiro64Value)-1
+	@loop:
+		lda (verifyValues), y
+		cmp Xoroshiro64Value, y
+		bne @failed
+	dey
+	bpl @loop
+	@failed:
+	clc
+	lda verifyValues+0
+	adc #.sizeof(Xoroshiro64Value)
+	sta verifyValues+0
+	bcc :+
+		inc verifyValues+1
+	:
+	jmp showVerifyResult
+
+; Clobbers: A, Y
+verifyNextStateXoroshiro64:
+	clc
+	lda verifyStates+0
+	adc #2*.sizeof(Xoroshiro64State0)
+	sta verifyStates+0
+	bcc :+
+		inc verifyStates+1
+	:
+	; Fall through to verifySameStateXoroshiro64
+
+; Clobbers: A, Y
+verifySameStateXoroshiro64:
+	; This assumes that the state variables are consecutive in memory.
+	ldy #2*.sizeof(Xoroshiro64State0)-1
+	@loop:
+		lda (verifyStates), y
+		cmp Xoroshiro64State0, y
 		bne @failed
 	dey
 	bpl @loop
