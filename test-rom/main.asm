@@ -98,6 +98,7 @@ Main:
 TestsDone:
 	jmp TestsDone
 
+.align $40
 ; --------
 
 TestXoshiro128:
