@@ -7,61 +7,74 @@
 Xoroshiro64Star:
 	; result = state[0] * $9E3779BB
 
-	; Put a temporary result area on the stack, and clear the result.
-	lda #0
+	; Push the state word to the stack, to shift single bits off it.
 	ldy #.sizeof(Xoroshiro64Value)-1
 	:
+		lda Xoroshiro64State0, y
 		pha
-		sta Xoroshiro64Value, y
 	dey
 	bpl :-
 
-	; Put the second factor on the stack. We need it to be modifiable.
-	lda #$9E
-	pha
-	lda #$37
-	pha
-	lda #$79
-	pha
-	lda #$BB
-	pha
+	; This sentinel bit allows the @loop exit to not need to use Y.
+	lda #$80
+	sta Xoroshiro64Value+.sizeof(Xoroshiro64Value)-1
 
+	; Clear the rest of the result word.
+	asl ; lda #0
+	.repeat .sizeof(Xoroshiro64Value)-1, i
+		sta Xoroshiro64Value+i
+	.endrepeat
+
+	; Push a temporary result area to the stack.
+	; This is shorter than value by 1 byte due to using A for high byte.
+	.repeat .sizeof(Xoroshiro64Value)-1-1
+		pha
+	.endrepeat
 	; Get stack pointer into X to use for indexing the temp vars.
 	tsx
-	inx ; TODO: move the tsx up above the previous pha to save this inx
+	pha
 
-	@num2 = $0100
-	@tmp = @num2 + 4
+	@tmp = $0100
+	@state = @tmp + .sizeof(Xoroshiro64Value) - 1
 
-	ldy #4*8 ; number of bits in @num2
 	@loop:
-		; Get low bit of @num2
-		lsr @num2+3, x
-		ror @num2+2, x
-		ror @num2+1, x
-		ror @num2+0, x
+		; Get the next lowest bit of the state factor
+		lsr @state+.sizeof(Xoroshiro64Value)-1, x
+		.repeat .sizeof(Xoroshiro64Value)-1, i
+			ror @state+.sizeof(Xoroshiro64Value)-1-1-i, x
+		.endrepeat
 		bcc @noAdd
-			; The bit was 1, so add the first factor to the result.
-			clc
-			.repeat .sizeof(Xoroshiro64Value), i
-				lda Xoroshiro64State0+i
-				adc @tmp+i, x
-				sta @tmp+i, x
-			.endrepeat
+			; The bit was 1, so add the fixed factor to the result.
+			tay
+
+			lda @tmp+0, x
+			adc #$BB-1 ; -1 to account for carry being set
+			sta @tmp+0, x
+
+			lda @tmp+1, x
+			adc #$79
+			sta @tmp+1, x
+
+			lda @tmp+2, x
+			adc #$37
+			sta @tmp+2, x
+
+			tya
+			adc #$9E
 		@noAdd:
-		.repeat .sizeof(Xoroshiro64Value), i
-			ror @tmp+.sizeof(Xoroshiro64Value)-1-i, x
+		ror a
+		.repeat .sizeof(Xoroshiro64Value)-1, i
+			ror @tmp+.sizeof(Xoroshiro64Value)-1-1-i, x
 		.endrepeat
 		.repeat .sizeof(Xoroshiro64Value), i
 			ror Xoroshiro64Value+.sizeof(Xoroshiro64Value)-1-i
 		.endrepeat
-	dey
-	bne @loop
+	bcc @loop
 
 	; Pop the temporary values from the stack
 	txa
-	clc
-	adc #4-1+.sizeof(Xoroshiro64Value)
+	; -1 for @tmp being shorter, -1 for x vs sp offset, -1 for carry=1.
+	adc #2*.sizeof(Xoroshiro64Value)-1-1-1
 	tax
 	txs
 

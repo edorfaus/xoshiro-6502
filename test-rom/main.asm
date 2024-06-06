@@ -29,10 +29,13 @@ size_Xoshiro256Next     = 145
 size_Xoshiro256Jump     =  62
 size_Xoshiro256LongJump =  62
 
+size_Xoroshiro64Star      = 100 ; -12
+size_Xoroshiro64Next      = 120
+
 .macro printSize lbl
 	.define sz_lbl .ident(.concat("size_", .string(lbl)))
 	.ifdef sz_lbl
-		.define diff .sprintf(" # %+3d", * - lbl - sz_lbl)
+		.define diff .sprintf(" ; %+3d", * - lbl - sz_lbl)
 	.else
 		.define diff ""
 	.endif
