@@ -1,3 +1,5 @@
+.ifndef Xoroshiro64Star
+
 .include "64vars.asm"
 
 .segment "LIBCODE"
@@ -79,3 +81,5 @@ Xoroshiro64Star:
 	txs
 
 	rts
+
+.endif

@@ -2,11 +2,15 @@
 .include "graphics.asm"
 .include "testdata.asm"
 
+; If set to 1, all sizes are shown.
+; If set to anything else, changed sizes are shown.
 ;printSizes = 1
 
-.macro printSizeSep
-	.ifdef printSizes
-		.out ""
+.macro printSizeSep where
+	.if .defined(printSizes)
+		.if printSizes = 1 || (!.blank({where}))
+			.out ""
+		.endif
 	.endif
 .endmacro
 
@@ -30,11 +34,16 @@ size_Xoshiro256Jump     =  62
 size_Xoshiro256LongJump =  62
 
 size_Xoroshiro64Star      = 100 ; -12
+size_Xoroshiro64StarStar  =  67
 size_Xoroshiro64Next      = 120
 
 .macro printSize lbl
 	.define sz_lbl .ident(.concat("size_", .string(lbl)))
 	.ifdef sz_lbl
+		.if * - lbl - sz_lbl = 0 && printSizes <> 1
+			.undefine sz_lbl
+			.exitmacro
+		.endif
 		.define diff .sprintf(" ; %+3d", * - lbl - sz_lbl)
 	.else
 		.define diff ""
@@ -46,7 +55,8 @@ size_Xoroshiro64Next      = 120
 
 .endif
 
-printSizeSep
+printSizeSep top
+
 .include "../xoshiro/128plus.asm"
 printSize Xoshiro128Plus
 .include "../xoshiro/128plusplus.asm"
@@ -81,7 +91,8 @@ printSize Xoroshiro64Star
 printSize Xoroshiro64StarStar
 .include "../xoroshiro/64next.asm"
 printSize Xoroshiro64Next
-printSizeSep
+
+printSizeSep bottom
 
 .segment "ZEROPAGE"
 verifyValues: .res 2
