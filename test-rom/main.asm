@@ -37,6 +37,9 @@ size_Xoroshiro64Star      = 100 ; -12
 size_Xoroshiro64StarStar  =  67
 size_Xoroshiro64Next      = 120
 
+size_Xoroshiro128Plus      =  19
+size_Xoroshiro128NextA     = 121
+
 .macro printSize lbl
 	.ifndef lbl
 		.error .concat("Label not defined: ", .string(lbl))
