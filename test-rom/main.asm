@@ -38,6 +38,10 @@ size_Xoroshiro64StarStar  =  67
 size_Xoroshiro64Next      = 120
 
 .macro printSize lbl
+	.ifndef lbl
+		.error .concat("Label not defined: ", .string(lbl))
+		.exitmacro
+	.endif
 	.define sz_lbl .ident(.concat("size_", .string(lbl)))
 	.ifdef sz_lbl
 		.if * - lbl - sz_lbl = 0 && printSizes <> 1
@@ -48,7 +52,7 @@ size_Xoroshiro64Next      = 120
 	.else
 		.define diff ""
 	.endif
-	.out .sprintf("%25s = %3d%s", .string(sz_lbl), * - lbl, diff)
+	.out .sprintf("%26s = %3d%s", .string(sz_lbl), * - lbl, diff)
 	.undefine diff
 	.undefine sz_lbl
 .endmacro
@@ -92,6 +96,18 @@ printSize Xoroshiro64StarStar
 .include "../xoroshiro/64next.asm"
 printSize Xoroshiro64Next
 
+printSizeSep
+.include "../xoroshiro/128plus.asm"
+printSize Xoroshiro128Plus
+.include "../xoroshiro/128starstar.asm"
+printSize Xoroshiro128StarStar
+.include "../xoroshiro/128nexta.asm"
+printSize Xoroshiro128NextA
+.include "../xoroshiro/128jumpa.asm"
+printSize Xoroshiro128JumpA
+.include "../xoroshiro/128longjumpa.asm"
+printSize Xoroshiro128LongJumpA
+
 printSizeSep bottom
 
 .segment "ZEROPAGE"
@@ -108,6 +124,8 @@ Main:
 	jsr TestXoshiro256
 	jsr WriteNewline
 	jsr TestXoroshiro64
+	jsr WriteNewline
+	jsr TestXoroshiro128A
 
 TestsDone:
 	jmp TestsDone
@@ -480,6 +498,132 @@ verifySameStateXoroshiro64:
 	@loop:
 		lda (verifyStates), y
 		cmp Xoroshiro64State0, y
+		bne @failed
+	dey
+	bpl @loop
+	@failed:
+	jmp showVerifyResult
+
+; --------
+
+TestXoroshiro128A:
+	jsr InitTest_Xoroshiro128A
+	jsr InitState_Xoroshiro128
+
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoroshiro128Plus
+		jsr verifyValueXoroshiro128
+		jsr verifySameStateXoroshiro128
+
+		jsr WriteBlank
+
+		jsr Xoroshiro128StarStar
+		jsr verifyValueXoroshiro128
+		jsr verifySameStateXoroshiro128
+
+		jsr WriteBlank
+
+		jsr Xoroshiro128NextA
+		jsr verifyNextStateXoroshiro128
+
+		jsr WriteSeparator
+
+	dec testLoopCounter
+	bne :-
+
+	; Note: we are here assuming that the jump and long-jump test states
+	; are stored directly after the test states used above.
+	; If this stops being true, add code to reinitialize verifyStates.
+
+	jsr InitState_Xoroshiro128
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoroshiro128JumpA
+		jsr verifyNextStateXoroshiro128
+	dec testLoopCounter
+	bne :-
+
+	jsr WriteSeparator
+
+	jsr InitState_Xoroshiro128
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoroshiro128LongJumpA
+		jsr verifyNextStateXoroshiro128
+	dec testLoopCounter
+	bne :-
+
+	jsr WriteSeparator
+	jsr WriteTile
+
+	rts
+
+; Clobbers: A
+InitTest_Xoroshiro128A:
+	lda #.lobyte(VerifyValuesXoroshiro128A)
+	sta verifyValues+0
+	lda #.hibyte(VerifyValuesXoroshiro128A)
+	sta verifyValues+1
+
+	lda #.lobyte(VerifyStatesXoroshiro128A)
+	sta verifyStates+0
+	lda #.hibyte(VerifyStatesXoroshiro128A)
+	sta verifyStates+1
+
+	rts
+
+; Clobbers: A, Y
+InitState_Xoroshiro128:
+	; This assumes that the state variables are consecutive in memory.
+	ldy #2*.sizeof(Xoroshiro128State0)-1
+	:
+		lda Seed, y
+		sta Xoroshiro128State0, y
+		dey
+	bpl :-
+	rts
+
+; Clobbers: A, Y
+verifyValueXoroshiro128:
+	ldy #.sizeof(Xoroshiro128Value)-1
+	@loop:
+		lda (verifyValues), y
+		cmp Xoroshiro128Value, y
+		bne @failed
+	dey
+	bpl @loop
+	@failed:
+	clc
+	lda verifyValues+0
+	adc #.sizeof(Xoroshiro128Value)
+	sta verifyValues+0
+	bcc :+
+		inc verifyValues+1
+	:
+	jmp showVerifyResult
+
+; Clobbers: A, Y
+verifyNextStateXoroshiro128:
+	clc
+	lda verifyStates+0
+	adc #2*.sizeof(Xoroshiro128State0)
+	sta verifyStates+0
+	bcc :+
+		inc verifyStates+1
+	:
+	; Fall through to verifySameStateXoroshiro128
+
+; Clobbers: A, Y
+verifySameStateXoroshiro128:
+	; This assumes that the state variables are consecutive in memory.
+	ldy #2*.sizeof(Xoroshiro128State0)-1
+	@loop:
+		lda (verifyStates), y
+		cmp Xoroshiro128State0, y
 		bne @failed
 	dey
 	bpl @loop
