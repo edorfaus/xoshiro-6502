@@ -63,6 +63,19 @@ size_Xoroshiro128LongJumpA =  65
 	.undefine sz_lbl
 .endmacro
 
+.pushseg
+.scope printSizesTotalPre
+.segment "ZEROPAGE"
+prePosZP = *
+.segment "RAM"
+prePosRam = *
+.segment "LIBDATA"
+prePosData = *
+.segment "LIBCODE"
+prePosCode = *
+.endscope
+.popseg
+
 .endif
 
 printSizeSep top
@@ -115,6 +128,24 @@ printSize Xoroshiro128JumpA
 printSize Xoroshiro128LongJumpA
 
 printSizeSep bottom
+
+.ifdef printSizes
+.scope printSizesTotalPost
+.pushseg
+.segment "ZEROPAGE"
+z = * - ::printSizesTotalPre::prePosZP
+.segment "RAM"
+r = * - ::printSizesTotalPre::prePosRam
+.segment "LIBDATA"
+d = * - ::printSizesTotalPre::prePosData
+.segment "LIBCODE"
+c = * - ::printSizesTotalPre::prePosCode
+.popseg
+
+.out .sprintf("Total size: ZP %d, RAM %d, code %d, data %d", z, r, c, d)
+
+.endscope
+.endif
 
 .segment "ZEROPAGE"
 verifyValues: .res 2
