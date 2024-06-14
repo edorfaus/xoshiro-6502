@@ -127,6 +127,16 @@ printSize Xoroshiro128JumpA
 .include "../xoroshiro/128longjumpa.asm"
 printSize Xoroshiro128LongJumpA
 
+printSizeSep
+.include "../xoroshiro/128plusplus.asm"
+printSize Xoroshiro128PlusPlus
+.include "../xoroshiro/128nextb.asm"
+printSize Xoroshiro128NextB
+.include "../xoroshiro/128jumpb.asm"
+printSize Xoroshiro128JumpB
+.include "../xoroshiro/128longjumpb.asm"
+printSize Xoroshiro128LongJumpB
+
 printSizeSep bottom
 
 .ifdef printSizes
@@ -163,6 +173,14 @@ Main:
 	jsr TestXoroshiro64
 	jsr WriteNewline
 	jsr TestXoroshiro128A
+	jsr WriteNewline
+	jsr TestXoroshiro128B
+
+	; Write an end-of-tests marker.
+	jsr WriteNewline
+	jsr WriteNewline
+	jsr WriteSeparator
+	jsr WriteTile
 
 TestsDone:
 	jmp TestsDone
@@ -666,3 +684,71 @@ verifySameStateXoroshiro128:
 	bpl @loop
 	@failed:
 	jmp showVerifyResult
+
+; --------
+
+; The B variant (for xoroshiro128++) also uses some subroutines from A.
+
+TestXoroshiro128B:
+	jsr InitTest_Xoroshiro128B
+	jsr InitState_Xoroshiro128
+
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoroshiro128PlusPlus
+		jsr verifyValueXoroshiro128
+		jsr verifySameStateXoroshiro128
+
+		jsr WriteBlank
+
+		jsr Xoroshiro128NextB
+		jsr verifyNextStateXoroshiro128
+
+		jsr WriteSeparator
+
+	dec testLoopCounter
+	bne :-
+
+	; Note: we are here assuming that the jump and long-jump test states
+	; are stored directly after the test states used above.
+	; If this stops being true, add code to reinitialize verifyStates.
+
+	jsr InitState_Xoroshiro128
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoroshiro128JumpB
+		jsr verifyNextStateXoroshiro128
+	dec testLoopCounter
+	bne :-
+
+	jsr WriteSeparator
+
+	jsr InitState_Xoroshiro128
+	lda #4
+	sta testLoopCounter
+	:
+		jsr Xoroshiro128LongJumpB
+		jsr verifyNextStateXoroshiro128
+	dec testLoopCounter
+	bne :-
+
+	jsr WriteSeparator
+	jsr WriteTile
+
+	rts
+
+; Clobbers: A
+InitTest_Xoroshiro128B:
+	lda #.lobyte(VerifyValuesXoroshiro128B)
+	sta verifyValues+0
+	lda #.hibyte(VerifyValuesXoroshiro128B)
+	sta verifyValues+1
+
+	lda #.lobyte(VerifyStatesXoroshiro128B)
+	sta verifyStates+0
+	lda #.hibyte(VerifyStatesXoroshiro128B)
+	sta verifyStates+1
+
+	rts
