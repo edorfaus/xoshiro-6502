@@ -2,6 +2,9 @@
 .include "graphics.asm"
 .include "testdata.asm"
 
+.segment "LIBCODE"
+.align $100
+
 ; If set to 1, all sizes are shown.
 ; If set to anything else, changed sizes are shown.
 ;printSizes = 1
