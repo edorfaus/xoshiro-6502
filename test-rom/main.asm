@@ -1,93 +1,15 @@
 .include "core.asm"
 .include "graphics.asm"
 .include "testdata.asm"
+.include "impl-sizes.asm"
 
 .segment "LIBCODE"
 .align $100
 
-; If set to 1, all sizes are shown.
-; If set to anything else, changed sizes are shown.
-;printSizes = 1
-
-.macro printSizeSep where
-	.if .defined(printSizes)
-		.if printSizes = 1 || (!.blank({where}))
-			.out ""
-		.endif
-	.endif
-.endmacro
-
-.ifndef printSizes
-.macro printSize lbl
-.endmacro
-.else
-
-size_Xoshiro128Plus     =  38
-size_Xoshiro128PlusPlus =  88
-size_Xoshiro128StarStar = 171
-size_Xoshiro128Next     = 122
-size_Xoshiro128Jump     =  62
-size_Xoshiro128LongJump =  62
-
-size_Xoshiro256Plus     =  74
-size_Xoshiro256PlusPlus = 175
-size_Xoshiro256StarStar = 331
-size_Xoshiro256Next     = 145
-size_Xoshiro256Jump     =  62
-size_Xoshiro256LongJump =  62
-
-size_Xoroshiro64Star      = 100 ; -12
-size_Xoroshiro64StarStar  =  67
-size_Xoroshiro64Next      = 120
-
-size_Xoroshiro128Plus      =  19
-size_Xoroshiro128NextA     = 121
-size_Xoroshiro128StarStar  = 271
-size_Xoroshiro128JumpA     =  65
-size_Xoroshiro128LongJumpA =  65
-
-size_Xoroshiro128PlusPlus  =  90
-size_Xoroshiro128NextB     = 167
-size_Xoroshiro128JumpB     =  65
-size_Xoroshiro128LongJumpB =  65
-
-.macro printSize lbl
-	.ifndef lbl
-		.error .concat("Label not defined: ", .string(lbl))
-		.exitmacro
-	.endif
-	.define sz_lbl .ident(.concat("size_", .string(lbl)))
-	.ifdef sz_lbl
-		.if * - lbl - sz_lbl = 0 && printSizes <> 1
-			.undefine sz_lbl
-			.exitmacro
-		.endif
-		.define diff .sprintf(" ; %+3d", * - lbl - sz_lbl)
-	.else
-		.define diff ""
-	.endif
-	.out .sprintf("%26s = %3d%s", .string(sz_lbl), * - lbl, diff)
-	.undefine diff
-	.undefine sz_lbl
-.endmacro
-
-.pushseg
-.scope printSizesTotalPre
-.segment "ZEROPAGE"
-prePosZP = *
-.segment "RAM"
-prePosRam = *
-.segment "LIBDATA"
-prePosData = *
-.segment "LIBCODE"
-prePosCode = *
-.endscope
-.popseg
-
-.endif
-
 printSizeSep top
+sizeGroupStart combined
 
+sizeGroupStart Xoshiro128
 .include "../xoshiro/128plus.asm"
 printSize Xoshiro128Plus
 .include "../xoshiro/128plusplus.asm"
@@ -100,8 +22,10 @@ printSize Xoshiro128Next
 printSize Xoshiro128Jump
 .include "../xoshiro/128longjump.asm"
 printSize Xoshiro128LongJump
+sizeGroupEnd Xoshiro128
 
 printSizeSep
+sizeGroupStart Xoshiro256
 .include "../xoshiro/256plus.asm"
 printSize Xoshiro256Plus
 .include "../xoshiro/256plusplus.asm"
@@ -114,16 +38,21 @@ printSize Xoshiro256Next
 printSize Xoshiro256Jump
 .include "../xoshiro/256longjump.asm"
 printSize Xoshiro256LongJump
+sizeGroupEnd Xoshiro256
 
 printSizeSep
+sizeGroupStart Xoroshiro64
 .include "../xoroshiro/64star.asm"
 printSize Xoroshiro64Star
 .include "../xoroshiro/64starstar.asm"
 printSize Xoroshiro64StarStar
 .include "../xoroshiro/64next.asm"
 printSize Xoroshiro64Next
+sizeGroupEnd Xoroshiro64
 
 printSizeSep
+sizeGroupStart Xoroshiro128
+sizeGroupStart Xoroshiro128A
 .include "../xoroshiro/128plus.asm"
 printSize Xoroshiro128Plus
 .include "../xoroshiro/128starstar.asm"
@@ -134,8 +63,10 @@ printSize Xoroshiro128NextA
 printSize Xoroshiro128JumpA
 .include "../xoroshiro/128longjumpa.asm"
 printSize Xoroshiro128LongJumpA
+sizeGroupEnd Xoroshiro128A
 
 printSizeSep
+sizeGroupStart Xoroshiro128B
 .include "../xoroshiro/128plusplus.asm"
 printSize Xoroshiro128PlusPlus
 .include "../xoroshiro/128nextb.asm"
@@ -144,26 +75,13 @@ printSize Xoroshiro128NextB
 printSize Xoroshiro128JumpB
 .include "../xoroshiro/128longjumpb.asm"
 printSize Xoroshiro128LongJumpB
+sizeGroupEnd Xoroshiro128B
+sizeGroupEnd Xoroshiro128
+
+printSizeSep
+sizeGroupEnd combined
 
 printSizeSep bottom
-
-.ifdef printSizes
-.scope printSizesTotalPost
-.pushseg
-.segment "ZEROPAGE"
-z = * - ::printSizesTotalPre::prePosZP
-.segment "RAM"
-r = * - ::printSizesTotalPre::prePosRam
-.segment "LIBDATA"
-d = * - ::printSizesTotalPre::prePosData
-.segment "LIBCODE"
-c = * - ::printSizesTotalPre::prePosCode
-.popseg
-
-.out .sprintf("Total size: ZP %d, RAM %d, code %d, data %d", z, r, c, d)
-
-.endscope
-.endif
 
 .segment "ZEROPAGE"
 verifyValues: .res 2
