@@ -47,6 +47,7 @@ size_Xoroshiro128JumpA     =  65
 size_Xoroshiro128LongJumpA =  65
 
 size_Xoroshiro128PlusPlus  =  90
+size_Xoroshiro128NextB     = 167
 
 .macro printSize lbl
 	.ifndef lbl
