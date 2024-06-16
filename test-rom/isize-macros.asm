@@ -65,8 +65,12 @@
 		.segment "RAM"
 			prePosRam = *
 		.segment "LIBDATA"
-			prePosData = *
+			prePosLibData = *
 		.segment "LIBCODE"
+			prePosLibCode = *
+		.segment "DATA"
+			prePosData = *
+		.segment "CODE"
 			prePosCode = *
 		.popseg
 	.endscope
@@ -85,8 +89,8 @@
 	.undefine sz
 .endmacro
 
-.define fmt1 "totalSize %14s ZP %d%s, RAM %2d%s"
-.define fmt .concat(fmt1, ", code %4d%s, data %3d%s; total %4d%s")
+.define fmt1 "totalSize %14s ZP %2d%s, RAM %2d%s"
+.define fmt .concat(fmt1, ", code %4d%s, data %4d%s; total %4d%s")
 .undefine fmt1
 .macro sizeGroupEnd group
 	.define fmtGroup .concat(.string(group), ":")
@@ -97,9 +101,13 @@
 		.segment "RAM"
 			r = * - ::group::prePosRam
 		.segment "LIBDATA"
-			d = * - ::group::prePosData
+			ld = * - ::group::prePosLibData
 		.segment "LIBCODE"
-			c = * - ::group::prePosCode
+			lc = * - ::group::prePosLibCode
+		.segment "DATA"
+			d = * - ::group::prePosData + ld
+		.segment "CODE"
+			c = * - ::group::prePosCode + lc
 		.popseg
 
 		dt .set 0

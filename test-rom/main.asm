@@ -1,6 +1,5 @@
 .include "core.asm"
 .include "graphics.asm"
-.include "testdata.asm"
 .include "impl-sizes.asm"
 
 .segment "LIBCODE"
@@ -82,6 +81,14 @@ printSizeSep
 sizeGroupEnd combined
 
 printSizeSep bottom
+
+; --------
+
+totalSize tests:         ZP  5, RAM  0, code  840, data 1384; total 2229
+
+sizeGroupStart tests
+
+.include "testdata.asm"
 
 .segment "ZEROPAGE"
 verifyValues: .res 2
@@ -678,3 +685,5 @@ InitTest_Xoroshiro128B:
 	sta verifyStates+1
 
 	rts
+
+sizeGroupEnd tests
