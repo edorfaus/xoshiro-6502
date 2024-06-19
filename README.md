@@ -19,6 +19,9 @@ with it while writing my own code to do the same thing.
 Additionally, the test-rom directory contains a custom ROM for the NES,
 which runs some simple tests to verify that my implementation gets the
 same results as the reference implementation (including internal state).
+Note that [one of the files](/test-rom/nes2header.inc) in that directory
+was not written by me, and has a different license to the other files,
+as described at the top of that file.
 
 ## Implemented PRNGs
 
